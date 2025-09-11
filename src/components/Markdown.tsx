@@ -1,4 +1,3 @@
-// src/components/Markdown.tsx
 import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
@@ -11,7 +10,6 @@ import ProsCons from "./review/ProsCons";
 const components = { StarRating, PriceBox, ProsCons };
 
 export default function Markdown({ source }: { source: string }) {
-  // @ts-expect-error Async Server Component
   return (
     <article
       className="prose prose-lg max-w-none
