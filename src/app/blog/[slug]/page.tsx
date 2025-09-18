@@ -1,7 +1,7 @@
-// ✅ Node.js ランタイムで fs を使う
+// ❶ fs を使うので Node.js ランタイムを明示
 export const runtime = "nodejs";
 
-import type { Metadata } from "next";
+import type { Metadata, PageProps } from "next";
 import { notFound } from "next/navigation";
 import { getPostBySlug } from "@/lib/posts";
 import { MDXRemote } from "next-mdx-remote/rsc";
@@ -9,13 +9,11 @@ import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 
-// --- SEO ---
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
-  const { slug } = await params; // 👈 ここがポイント
+// ❷ SEO
+export async function generateMetadata(
+  { params }: PageProps<{ slug: string }>
+): Promise<Metadata> {
+  const { slug } = await params; // ★ Next.js 15 は await が必要
   const post = getPostBySlug(slug);
   if (!post) return { title: "記事が見つかりません" };
 
@@ -36,13 +34,11 @@ export async function generateMetadata({
   };
 }
 
-// --- ページ本体 ---
-export default async function BlogPostPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params; // 👈 ここがポイント
+// ❸ ページ本体（default export 必須）
+export default async function BlogPostPage(
+  { params }: PageProps<{ slug: string }>
+) {
+  const { slug } = await params; // ★ ここも await
   const post = getPostBySlug(slug);
   if (!post) return notFound();
 
