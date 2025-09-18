@@ -1,39 +1,62 @@
-import fs from "node:fs";
-import path from "node:path";
+// lib/posts.ts
+import fs from "fs";
+import path from "path";
 import matter from "gray-matter";
 
-const postsDir = path.join(process.cwd(), "content", "posts");
-
-export type PostMeta = {
-  slug: string;
+export type PostFrontmatter = {
   title: string;
-  date: string;
   description?: string;
-  tags?: string[];
+  date?: string;         // ISO形式 "2025-09-10"
+  thumbnail?: string;    // "/images/xxx.jpg"
 };
 
-export function getAllPostSlugs(): string[] {
-  return fs.readdirSync(postsDir)
-    .filter((f) => f.endsWith(".mdx"))
-    .map((f) => f.replace(/\.mdx$/, ""));
+export type Post = {
+  slug: string;
+  content: string;
+  frontmatter: PostFrontmatter;
+};
+
+const POSTS_DIR = path.join(process.cwd(), "content", "posts");
+
+export function getPostSlugs(): string[] {
+  if (!fs.existsSync(POSTS_DIR)) return [];
+  return fs
+    .readdirSync(POSTS_DIR)
+    .filter((f) => f.endsWith(".md") || f.endsWith(".mdx"));
 }
 
-export function getPostBySlug(slug: string): { meta: PostMeta; content: string } {
-  const fullPath = path.join(postsDir, `${slug}.mdx`);
-  const file = fs.readFileSync(fullPath, "utf-8");
+export function getPostBySlug(slug: string): Post | null {
+  const realSlug = slug.replace(/\.mdx?$/, "");
+  const fullPathMd = path.join(POSTS_DIR, `${realSlug}.md`);
+  const fullPathMdx = path.join(POSTS_DIR, `${realSlug}.mdx`);
+  const filePath = fs.existsSync(fullPathMdx) ? fullPathMdx : fullPathMd;
+
+  if (!fs.existsSync(filePath)) return null;
+
+  const file = fs.readFileSync(filePath, "utf8");
   const { data, content } = matter(file);
-  const meta: PostMeta = {
-    slug,
-    title: data.title ?? slug,
-    date: data.date ?? "",
-    description: data.description ?? "",
-    tags: data.tags ?? [],
+
+  return {
+    slug: realSlug,
+    content,
+    frontmatter: {
+      title: data.title ?? realSlug,
+      description: data.description ?? "",
+      date: data.date ?? "",
+      thumbnail: data.thumbnail ?? "",
+    },
   };
-  return { meta, content };
 }
 
-export function getAllPosts(): PostMeta[] {
-  return getAllPostSlugs()
-    .map((slug) => getPostBySlug(slug).meta)
-    .sort((a, b) => (a.date < b.date ? 1 : -1));
+export function getAllPosts(): Post[] {
+  const posts = getPostSlugs()
+    .map((slug) => getPostBySlug(slug)!)
+    .filter(Boolean);
+
+  // 新しい日付順にソート（dateが無いものは後ろ）
+  return posts.sort((a, b) => {
+    const da = a.frontmatter.date ? Date.parse(a.frontmatter.date) : 0;
+    const db = b.frontmatter.date ? Date.parse(b.frontmatter.date) : 0;
+    return db - da;
+  });
 }

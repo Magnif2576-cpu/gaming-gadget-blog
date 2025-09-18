@@ -1,28 +1,27 @@
-import Link from "next/link";
-// 相対パスで安全に参照（blog → app → lib）
-import { getAllPosts } from "../../lib/posts";
+import { getAllPosts } from "@/lib/posts";
+import PostCard from "@/components/PostCard";
 
-export const metadata = { title: "Blog | Gaming Gadget Blog" };
+export const metadata = {
+  title: "Blog | Gaming Gadget Blog",
+  description: "ゲーミングガジェットのレビュー・ニュース・ノウハウを発信",
+};
 
-export default function BlogIndex() {
+export default function BlogIndexPage() {
   const posts = getAllPosts();
 
   return (
-    <main className="max-w-3xl mx-auto px-6 py-10">
-      <h1 className="text-3xl font-bold">最新記事</h1>
-      <ul className="mt-6 space-y-4">
+    <main className="mx-auto max-w-5xl px-4 py-8">
+      <h1 className="mb-6 text-2xl font-bold">Blog</h1>
+
+      {posts.length === 0 && (
+        <p className="text-gray-600">記事がありません。まずは1本書いてみましょう！</p>
+      )}
+
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {posts.map((p) => (
-          <li key={p.slug} className="border-b pb-4">
-            <h2 className="text-xl font-semibold">
-              <Link href={`/blog/${p.slug}`}>{p.title}</Link>
-            </h2>
-            <p className="text-sm text-neutral-600">{p.date}</p>
-            {p.description && (
-              <p className="text-neutral-700 mt-1">{p.description}</p>
-            )}
-          </li>
+          <PostCard key={p.slug} post={p} />
         ))}
-      </ul>
+      </div>
     </main>
   );
 }

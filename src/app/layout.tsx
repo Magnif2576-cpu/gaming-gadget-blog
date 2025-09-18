@@ -1,29 +1,24 @@
 // src/app/layout.tsx
-import type { Metadata } from "next";
+import Link from "next/link";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: {
-    default: "Gaming Gadget Blog",
-    template: "%s | Gaming Gadget Blog",
-  },
-  description: "ゲーミングデバイス＆便利ガジェットのレビュー・比較・おすすめ",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
-  openGraph: {
-    type: "website",
-    siteName: "Gaming Gadget Blog",
-  },
+export const metadata = {
+  title: "Gaming Gadget Blog",
+  description: "軽量・高性能ガジェットのレビューと比較",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ja">
-      <body className="min-h-dvh bg-white text-black">
-        {/* ここにグローバルナビ等を置くならこの中 */}
+      <body className="min-h-screen bg-gray-50 text-gray-900">
+        <header className="border-b bg-white">
+          <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+            <Link href="/" className="text-lg font-bold">Gaming Gadget Blog</Link>
+            <div className="flex items-center gap-4">
+              <Link href="/blog" className="text-sm hover:underline">Blog</Link>
+            </div>
+          </nav>
+        </header>
         {children}
       </body>
     </html>

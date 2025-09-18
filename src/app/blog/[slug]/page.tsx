@@ -1,55 +1,68 @@
-import { getAllPostSlugs, getPostBySlug } from "../../../lib/posts";
-import Markdown from "../../../components/Markdown";
+// src/app/blog/[slug]/page.tsx
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { getPostBySlug } from "@/lib/posts";
+import { MDXRemote } from "next-mdx-remote/rsc";
+import remarkGfm from "remark-gfm";
+import rehypeSlug from "rehype-slug";
+import rehypeAutolinkHeadings from "rehype-autolink-headings";
 
-type Params = { slug: string };
+type Props = { params: { slug: string } };
 
-export function generateStaticParams() {
-  return getAllPostSlugs().map((slug) => ({ slug }));
-}
+// --- SEO ---
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const post = getPostBySlug(params.slug);
+  if (!post) return { title: "記事が見つかりません" };
 
-// ★ v15対応: params は Promise。await してから使う
-export async function generateMetadata(
-  { params }: { params: Promise<Params> }
-): Promise<Metadata> {
-  const { slug } = await params;
-  const { meta } = getPostBySlug(slug);
+  const { title, description, thumbnail } = post.frontmatter;
+  const url = `https://gaming-gadget-blog.vercel.app/blog/${post.slug}`;
+
   return {
-    title: `${meta.title} | Gaming Gadget Blog`,
-    description: meta.description,
+    title: `${title} | Gaming Gadget Blog`,
+    description,
+    openGraph: {
+      title: `${title} | Gaming Gadget Blog`,
+      description,
+      url,
+      images: thumbnail ? [{ url: thumbnail }] : [],
+      type: "article",
+    },
+    alternates: { canonical: url },
   };
 }
 
-// ★ ページ本体も async & await
-export default async function PostPage(
-  { params }: { params: Promise<Params> }
-) {
-  const { slug } = await params;
-  const { meta, content } = getPostBySlug(slug);
+// --- ページ本体（default export が必須） ---
+export default async function BlogPostPage({ params }: Props) {
+  const post = getPostBySlug(params.slug);
+  if (!post) return notFound();
+
+  const { title, date } = post.frontmatter;
 
   return (
-    <main className="max-w-3xl mx-auto px-6 py-10">
-      <h1 className="text-3xl font-bold">{meta.title}</h1>
-      <p className="text-sm text-neutral-600 mt-1">{meta.date}</p>
-      <div className="mt-6">
-        <Markdown source={content} />
-      </div>
-      {/* SEO: JSON-LD (BlogPosting) */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BlogPosting",
-            "headline": meta.title,
-            "datePublished": meta.date,
-            "description": meta.description,
-            "author": { "@type": "Person", "name": "Magni" },
-            "publisher": { "@type": "Organization", "name": "Gaming Gadget Blog" },
-            "mainEntityOfPage": `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/blog/${meta.slug}`
-          }),
-        }}
-      />
+    <main className="mx-auto max-w-3xl px-4 py-8">
+      <header className="mb-6">
+        <h1 className="text-3xl font-bold">{title}</h1>
+        {date && (
+          <time className="text-sm text-gray-500">
+            {new Date(date).toLocaleDateString("ja-JP")}
+          </time>
+        )}
+      </header>
+
+      <article className="prose max-w-none prose-img:rounded-xl">
+        <MDXRemote
+          source={post.content}
+          options={{
+            mdxOptions: {
+              remarkPlugins: [remarkGfm],
+              rehypePlugins: [
+                rehypeSlug,
+                [rehypeAutolinkHeadings, { behavior: "wrap" }],
+              ],
+            },
+          }}
+        />
+      </article>
     </main>
   );
 }

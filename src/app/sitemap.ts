@@ -1,16 +1,20 @@
+// src/app/sitemap.ts
 import type { MetadataRoute } from "next";
-import { getAllPostSlugs } from "@/lib/posts";
+import { getAllPosts } from "@/lib/posts";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-  const posts = getAllPostSlugs().map((slug) => ({
-    url: `${base}/blog/${slug}`,
-    lastModified: new Date(),
-  }));
+  const base = "https://gaming-gadget-blog.vercel.app";
+  const posts = getAllPosts();
 
-  return [
+  const staticUrls: MetadataRoute.Sitemap = [
     { url: `${base}/`, lastModified: new Date() },
     { url: `${base}/blog`, lastModified: new Date() },
-    ...posts,
   ];
+
+  const postUrls: MetadataRoute.Sitemap = posts.map((p) => ({
+    url: `${base}/blog/${p.slug}`,
+    lastModified: p.frontmatter.date ? new Date(p.frontmatter.date) : new Date(),
+  }));
+
+  return [...staticUrls, ...postUrls];
 }
