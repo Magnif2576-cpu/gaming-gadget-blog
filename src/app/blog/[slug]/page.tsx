@@ -1,4 +1,6 @@
-// src/app/blog/[slug]/page.tsx
+// ✅ Node.js ランタイムで fs を使う
+export const runtime = "nodejs";
+
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPostBySlug } from "@/lib/posts";
@@ -7,11 +9,14 @@ import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 
-type Props = { params: { slug: string } };
-
 // --- SEO ---
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const post = getPostBySlug(params.slug);
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params; // 👈 ここがポイント
+  const post = getPostBySlug(slug);
   if (!post) return { title: "記事が見つかりません" };
 
   const { title, description, thumbnail } = post.frontmatter;
@@ -31,9 +36,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-// --- ページ本体（default export が必須） ---
-export default async function BlogPostPage({ params }: Props) {
-  const post = getPostBySlug(params.slug);
+// --- ページ本体 ---
+export default async function BlogPostPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params; // 👈 ここがポイント
+  const post = getPostBySlug(slug);
   if (!post) return notFound();
 
   const { title, date } = post.frontmatter;
