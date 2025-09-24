@@ -1,41 +1,39 @@
 // components/PostCard.tsx
-import Link from "next/link";
-import Image from "next/image";
-import { Post } from "@/lib/posts";
+"use client";
 
-export default function PostCard({ post }: { post: Post }) {
-  const { slug, frontmatter } = post;
-  const { title, description, date, thumbnail } = frontmatter;
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
+
+export default function PostCard({ post }: { post: any }) {
+  const { title, description, date, thumbnail } = post.frontmatter;
+  const [imgSrc, setImgSrc] = useState(
+    thumbnail || "/images/placeholder.png"
+  );
 
   return (
-    <article className="rounded-2xl border border-gray-200 hover:shadow-md transition p-4 bg-white">
-      <Link href={`/blog/${slug}`} className="block">
-        <div className="aspect-[16/9] w-full overflow-hidden rounded-xl bg-gray-100">
-          {thumbnail ? (
-            <Image
-              src={thumbnail}
-              alt={title}
-              width={800}
-              height={450}
-              className="h-full w-full object-cover"
-              priority={false}
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-gray-400">
-              No Image
-            </div>
-          )}
-        </div>
-        <h3 className="mt-3 text-lg font-semibold">{title}</h3>
-        {date && (
-          <time className="text-sm text-gray-500">
-            {new Date(date).toLocaleDateString("ja-JP")}
-          </time>
-        )}
-        {description && (
-          <p className="mt-1 text-sm text-gray-700 line-clamp-2">{description}</p>
-        )}
-      </Link>
-    </article>
+    <Link
+      href={`/blog/${post.slug}`}
+      className="block border rounded-lg overflow-hidden bg-white"
+    >
+      <div className="relative aspect-[16/9] bg-gray-100">
+        <Image
+          src={imgSrc}
+          alt={title}
+          fill
+          className="object-cover"
+          // 404や読み込み失敗時にプレースホルダーへ差し替え
+          onError={() => setImgSrc("/images/placeholder.png")}
+        />
+      </div>
+
+      <div className="p-4">
+        <h3 className="font-semibold line-clamp-2">{title}</h3>
+        <p className="text-sm text-gray-600 line-clamp-2">{description}</p>
+        <p className="mt-2 text-xs text-gray-400">
+          {new Date(date).toLocaleDateString("ja-JP")}
+        </p>
+      </div>
+    </Link>
   );
 }
