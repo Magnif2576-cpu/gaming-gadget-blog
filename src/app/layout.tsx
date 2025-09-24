@@ -1,16 +1,16 @@
 // src/app/layout.tsx
+import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
 import Script from "next/script";
 import { GA_ID } from "@/lib/gtag";
 
-// メタデータ (App Router 用)
-export const metadata = {
+// ✅ メタデータ（App Router 用）
+export const metadata: Metadata = {
   title: "Gaming Gadget Blog",
   description: "軽量・高性能ガジェットのレビューと比較",
   verification: {
-    // 🔽 ここに Search Console 発行のコードを入れる
-    google: "ZyCcS9tX1tJoXvPra_qnhFqF2ARt9uxUKIZYiPpGF5Ig",
+    google: "zcYcSQ1xt1oXvPra_qnhFQf2ART9uxUKIZYiPpGF5Ig", // ← Search Console発行のコード
   },
 };
 
