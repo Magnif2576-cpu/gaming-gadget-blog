@@ -1,39 +1,51 @@
-// components/PostCard.tsx
-"use client";
-
+// src/components/PostCard.tsx
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 
-export default function PostCard({ post }: { post: any }) {
-  const { title, description, date, thumbnail } = post.frontmatter;
-  const [imgSrc, setImgSrc] = useState(
-    thumbnail || "/images/placeholder.png"
-  );
+export interface PostMeta {
+  slug: string;
+  title: string;
+  description?: string;
+  date: string;          // ISO文字列 or "YYYY-MM-DD"
+  image?: string | null; // ない場合はプレースホルダ
+}
+
+interface PostCardProps {
+  post: PostMeta;
+}
+
+export default function PostCard({ post }: PostCardProps) {
+  const {
+    slug,
+    title,
+    description = "",
+    date,
+    image,
+  } = post;
+
+  const cover = image ?? "/images/placeholder.png";
 
   return (
-    <Link
-      href={`/blog/${post.slug}`}
-      className="block border rounded-lg overflow-hidden bg-white"
-    >
-      <div className="relative aspect-[16/9] bg-gray-100">
-        <Image
-          src={imgSrc}
-          alt={title}
-          fill
-          className="object-cover"
-          // 404や読み込み失敗時にプレースホルダーへ差し替え
-          onError={() => setImgSrc("/images/placeholder.png")}
-        />
-      </div>
-
-      <div className="p-4">
-        <h3 className="font-semibold line-clamp-2">{title}</h3>
-        <p className="text-sm text-gray-600 line-clamp-2">{description}</p>
-        <p className="mt-2 text-xs text-gray-400">
-          {new Date(date).toLocaleDateString("ja-JP")}
-        </p>
-      </div>
-    </Link>
+    <article className="rounded-2xl border bg-white shadow-sm hover:shadow-md transition">
+      <Link href={`/blog/${slug}`} className="block">
+        <div className="relative aspect-[16/9] w-full overflow-hidden rounded-t-2xl">
+          <Image
+            src={cover}
+            alt={title}
+            fill
+            sizes="(max-width: 768px) 100vw, 33vw"
+            className="object-cover"
+            priority={false}
+          />
+        </div>
+        <div className="p-4">
+          <h3 className="text-base font-semibold">{title}</h3>
+          <p className="mt-1 line-clamp-2 text-sm text-gray-600">{description}</p>
+          <time className="mt-2 block text-xs text-gray-500">
+            {new Date(date).toLocaleDateString("ja-JP")}
+          </time>
+        </div>
+      </Link>
+    </article>
   );
 }
